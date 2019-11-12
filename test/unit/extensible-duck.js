@@ -240,18 +240,18 @@ describe('Duck', () => {
     })
     it('merges the sagas', () => {
       const duck = new Duck({
-        sagas: () => ({
+        sagas: {
           first: function*() {
             yield 1
           },
-        }),
+        },
       })
       const childDuck = duck.extend({
-        sagas: () => ({
+        sagas: {
           second: function*() {
             yield 2
           },
-        }),
+        },
       })
       expect(_.keys(childDuck.sagas)).to.eql(['first', 'second'])
     })

@@ -75,7 +75,7 @@ function assignDefaults(options) {
   return {
     ...options,
     consts: options.consts || {},
-    sagas: options.sagas || (() => ({})),
+    sagas: options.sagas || {},
     takes: options.takes || (() => []),
     creators: options.creators || (() => ({})),
     selectors: options.selectors || {},
@@ -179,7 +179,10 @@ export default class Duck {
     this.reducer = this.reducer.bind(this)
     this.selectors = deriveSelectors(injectDuck(selectors, this))
     this.creators = creators(this)
-    this.sagas = sagas(this)
+    this.sagas = {}
+    Object.keys(sagas).forEach(saga => {
+      this.sagas[saga] = sagas[saga](this)
+    })
     this.takes = takes(this)
   }
   reducer(state, action) {
@@ -207,10 +210,7 @@ export default class Duck {
       ...options,
       initialState,
       consts: mergeDeep({}, parent.consts, options.consts),
-      sagas: duck => {
-        const parentSagas = parent.sagas(duck)
-        return { ...parentSagas, ...options.sagas(duck, parentSagas) }
-      },
+      sagas: mergeDeep({}, parent.sagas, options.sagas),
       takes: duck => {
         const parentTakes = parent.takes(duck)
         return [...parentTakes, ...options.takes(duck, parentTakes)]
