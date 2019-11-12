@@ -110,7 +110,7 @@ function zipObject(keys, values) {
   }
 
   return result;
-};
+}
 
 function buildTypes(namespace, store, types) {
   return zipObject(types, types.map(function (type) {
@@ -131,9 +131,9 @@ function isUndefined(value) {
 }
 
 function isPlainObject(obj) {
-  return isObject(obj) && (obj.constructor === Object // obj = {}
-  || obj.constructor === undefined // obj = Object.create(null)
-  );
+  return isObject(obj) && (obj.constructor === Object || // obj = {}
+  obj.constructor === undefined) // obj = Object.create(null)
+  ;
 }
 
 function mergeDeep(target) {
@@ -190,14 +190,12 @@ function mergeDeep(target) {
   }
 
   return mergeDeep.apply(undefined, [target].concat(sources));
-};
+}
 
 function assignDefaults(options) {
   return _extends({}, options, {
     consts: options.consts || {},
-    sagas: options.sagas || function () {
-      return {};
-    },
+    sagas: options.sagas || {},
     takes: options.takes || function () {
       return [];
     },
@@ -305,7 +303,10 @@ var Duck = function () {
     this.reducer = this.reducer.bind(this);
     this.selectors = deriveSelectors(injectDuck(selectors, this));
     this.creators = creators(this);
-    this.sagas = sagas(this);
+    this.sagas = {};
+    Object.keys(sagas).forEach(function (saga) {
+      _this.sagas[saga] = sagas[saga](_this);
+    });
     this.takes = takes(this);
   }
 
@@ -340,10 +341,7 @@ var Duck = function () {
       return new Duck(_extends({}, parent, options, {
         initialState: initialState,
         consts: mergeDeep({}, parent.consts, options.consts),
-        sagas: function sagas(duck) {
-          var parentSagas = parent.sagas(duck);
-          return _extends({}, parentSagas, options.sagas(duck, parentSagas));
-        },
+        sagas: mergeDeep({}, parent.sagas, options.sagas),
         takes: function takes(duck) {
           var parentTakes = parent.takes(duck);
           return [].concat(_toConsumableArray(parentTakes), _toConsumableArray(options.takes(duck, parentTakes)));
